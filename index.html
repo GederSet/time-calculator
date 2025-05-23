@@ -4,27 +4,34 @@
     <meta charset="UTF-8" />
     <title>Сумма времени</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
       body {
         font-family: Arial, sans-serif;
         padding: 20px;
+        display: flex;
+        flex-direction: column;
       }
       .title {
-        font-size: 22px;
+        font-size: 24px;
         margin-bottom: 20px;
       }
-      input,
+      textarea {
+        min-height: 380px;
+      }
+      textarea,
       button {
         padding: 10px;
         font-size: 16px;
         margin-top: 10px;
+        max-width: 500px;
         border-radius: 5px;
-      }
-      input {
-        border: 1px solid black;
+        resize: vertical;
       }
       button {
         cursor: pointer;
-        background-color: rgb(0, 153, 255);
+        background-color: rgb(0, 174, 255);
         border: none;
         color: white;
       }
@@ -35,68 +42,61 @@
     </style>
   </head>
   <body>
-    <div class="title">Введите время (например: 30m 1h20m 50m 2h)</div>
-    <input
-      type="text"
+    <div class="title">
+      Вставь сюда текст с временем (в формате: 30m, 2h, 1h40m или 1h 10m):
+    </div>
+    <textarea
       id="timeInput"
-      placeholder="Пример: 30m 1h20m 50m 2h"
-      size="40"
-    />
+      rows="12"
+      placeholder="Вставь текст сюда..."
+    ></textarea>
     <br />
     <button onclick="calculateTotalTime()">Посчитать</button>
 
     <div id="result"></div>
 
     <script>
+      function extractTimeStrings(text) {
+        // Найдёт все вхождения вроде "1h 20m", "1h20m", "45m", "2h"
+        const matches = text.match(/\d+h\s*\d*m|\d+h|\d+m/gi)
+        return matches || []
+      }
+
       function parseTimeString(timeStr) {
         let hours = 0,
           minutes = 0
-
-        // Найдём "1h20m", "1h", "20m" и т.п.
-        const hourMatch = timeStr.match(/(\d+)h/)
-        const minuteMatch = timeStr.match(/(\d+)m/)
-
-        if (hourMatch) {
-          hours = parseInt(hourMatch[1], 10)
-        }
-        if (minuteMatch) {
-          minutes = parseInt(minuteMatch[1], 10)
-        }
-
+        const hourMatch = timeStr.match(/(\d+)\s*h/i)
+        const minuteMatch = timeStr.match(/(\d+)\s*m/i)
+        if (hourMatch) hours = parseInt(hourMatch[1], 10)
+        if (minuteMatch) minutes = parseInt(minuteMatch[1], 10)
         return { hours, minutes }
       }
 
       function sumTimes(timeStrings) {
         let totalMinutes = 0
-
         for (const timeStr of timeStrings) {
-          const trimmed = timeStr.trim()
-          if (trimmed === '') continue
-
-          const { hours, minutes } = parseTimeString(trimmed)
+          const { hours, minutes } = parseTimeString(timeStr)
           totalMinutes += hours * 60 + minutes
         }
-
         const finalHours = Math.floor(totalMinutes / 60)
         const finalMinutes = totalMinutes % 60
-
         return `${finalHours}h ${finalMinutes}m`
       }
 
       function calculateTotalTime() {
-        const input = document.getElementById('timeInput').value
-        const timeEntries = input.split(/\s+/) // Разделитель — один или несколько пробелов
+        const inputText = document.getElementById('timeInput').value
+        const timeEntries = extractTimeStrings(inputText)
         const total = sumTimes(timeEntries)
         document.getElementById(
           'result'
         ).textContent = `Суммарное время: ${total}`
       }
 
-      // Обработка Enter в поле ввода
+      // Enter для textarea (Ctrl+Enter)
       document
         .getElementById('timeInput')
-        .addEventListener('keypress', function (event) {
-          if (event.key === 'Enter') {
+        .addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' && event.ctrlKey) {
             event.preventDefault()
             calculateTotalTime()
           }
