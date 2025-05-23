@@ -56,9 +56,15 @@
     <div id="result"></div>
 
     <script>
+      function normalizeTimeText(text) {
+        // Приводим ч/м к h/m для унификации
+        return text.replace(/(\d+)\s*ч/gi, '$1h').replace(/(\d+)\s*м/gi, '$1m')
+      }
+
       function extractTimeStrings(text) {
-        // Найдёт все вхождения вроде "1h 20m", "1h20m", "45m", "2h"
-        const matches = text.match(/\d+h\s*\d*m|\d+h|\d+m/gi)
+        const normalized = normalizeTimeText(text)
+        // Ищем "1h20m", "1h", "20m" — без пробелов или с ними
+        const matches = normalized.match(/\d+h\s*\d*m|\d+h|\d+m/gi)
         return matches || []
       }
 
@@ -92,7 +98,7 @@
         ).textContent = `Суммарное время: ${total}`
       }
 
-      // Enter для textarea (Ctrl+Enter)
+      // Ctrl+Enter для подсчёта
       document
         .getElementById('timeInput')
         .addEventListener('keydown', function (event) {
